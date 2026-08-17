@@ -15,6 +15,7 @@ public class VpsDialog extends JDialog {
     private final JTextField userField    = new JTextField(22);
     private final JPasswordField passField = new JPasswordField(22);
     private final JComboBox<Vps.Shell> shellBox = new JComboBox<>(Vps.Shell.values());
+    private final JComboBox<TerminalLauncher.Option> terminalBox = new JComboBox<>();
     private final JTextArea commandArea   = new JTextArea(4, 22);
 
     private boolean confirmed = false;
@@ -36,6 +37,8 @@ public class VpsDialog extends JDialog {
         addRow(form, c, row++, "Host / IP:", hostField);
         addRow(form, c, row++, "Username:",  userField);
         addRow(form, c, row++, "Password:",  passField);
+        populateTerminalOptions(existing);
+        addRow(form, c, row++, "Terminal:",  terminalBox);
         addRow(form, c, row++, "Shell:",     shellBox);
 
         // Command (multi-line)
@@ -83,6 +86,7 @@ public class VpsDialog extends JDialog {
             hostField.setText(existing.getHost());
             userField.setText(existing.getUsername());
             passField.setText(existing.getPassword());
+            selectTerminal(existing.getTerminal());
             shellBox.setSelectedItem(existing.getShell());
             commandArea.setText(existing.getCommand());
         } else {
@@ -115,6 +119,7 @@ public class VpsDialog extends JDialog {
                 userField.getText().trim(),
                 new String(passField.getPassword()),
                 (Vps.Shell) shellBox.getSelectedItem(),
+                ((TerminalLauncher.Option) terminalBox.getSelectedItem()).id(),
                 commandArea.getText().trim()
         );
         confirmed = true;
@@ -123,4 +128,21 @@ public class VpsDialog extends JDialog {
 
     public boolean isConfirmed() { return confirmed; }
     public Vps getResult()       { return result; }
+
+    private void populateTerminalOptions(Vps existing) {
+        for (TerminalLauncher.Option option : TerminalLauncher.availableOptions()) {
+            terminalBox.addItem(option);
+        }
+        selectTerminal(existing == null ? AppSettings.getPreferredTerminal() : existing.getTerminal());
+    }
+
+    private void selectTerminal(String terminalId) {
+        for (int i = 0; i < terminalBox.getItemCount(); i++) {
+            if (terminalBox.getItemAt(i).id().equals(terminalId)) {
+                terminalBox.setSelectedIndex(i);
+                return;
+            }
+        }
+        terminalBox.setSelectedIndex(0);
+    }
 }

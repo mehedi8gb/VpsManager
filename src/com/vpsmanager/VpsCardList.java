@@ -33,6 +33,9 @@ public class VpsCardList extends JPanel {
     private final List<Vps> vpsList = new ArrayList<>();
     private final JPanel cardsContainer;
     private final JLabel emptyLabel;
+    private VpsCard draggedCard;
+    private boolean dragging;
+    private int dropInsertionIndex = -1;
 
     public VpsCardList(MainFrame owner) {
         this.owner = owner;
@@ -70,6 +73,48 @@ public class VpsCardList extends JPanel {
     public void replaceVps(int i, Vps v)   { vpsList.set(i, v);       rebuild(); }
     public void removeVps(int i)           { vpsList.remove(i);        rebuild(); }
 
+    private void beginDrag(VpsCard card) {
+        draggedCard = card;
+        dragging = true;
+        cardsContainer.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+    }
+
+    private void updateDropTarget(Point pointInContainer) {
+        int newInsertionIndex = vpsList.size();
+        for (Component component : cardsContainer.getComponents()) {
+            if (component instanceof VpsCard card
+                    && pointInContainer.y < card.getY() + card.getHeight() / 2) {
+                newInsertionIndex = card.index;
+                break;
+            }
+        }
+        if (dropInsertionIndex != newInsertionIndex) {
+            dropInsertionIndex = newInsertionIndex;
+            cardsContainer.repaint();
+        }
+    }
+
+    private void finishDrag() {
+        if (!dragging || draggedCard == null) return;
+
+        int sourceIndex = draggedCard.index;
+        int destinationIndex = dropInsertionIndex;
+        if (destinationIndex > sourceIndex) destinationIndex--;
+
+        if (destinationIndex != sourceIndex) {
+            Vps moved = vpsList.remove(sourceIndex);
+            vpsList.add(destinationIndex, moved);
+            rebuild();
+            owner.saveData();
+        }
+
+        draggedCard = null;
+        dragging = false;
+        dropInsertionIndex = -1;
+        cardsContainer.setCursor(Cursor.getDefaultCursor());
+        cardsContainer.repaint();
+    }
+
     // ── Rebuild ───────────────────────────────────────────────────────────────
 
     private void rebuild() {
@@ -104,6 +149,8 @@ public class VpsCardList extends JPanel {
         // Hover + confirm state
         private boolean hovered    = false;
         private boolean confirming = false;
+        private Point dragStart;
+        private boolean suppressClick;
 
         // Right-side panels switched via CardLayout
         private static final String CARD_ICONS   = "icons";
@@ -177,6 +224,7 @@ public class VpsCardList extends JPanel {
             // ── Mouse tracking ────────────────────────────────────────────────
             attachHoverTracking();
             attachClickToConnect();
+            attachDragToReorder();
         }
 
         // ── Build helpers ─────────────────────────────────────────────────────
@@ -184,7 +232,8 @@ public class VpsCardList extends JPanel {
         private String buildSubtitle() {
             String user  = vps.getUsername();
             String host  = vps.getHost();
-            String shell = "[" + vps.getShell().name() + "]";
+            String shell = "[" + vps.getShell().name() + " · "
+                    + TerminalLauncher.labelFor(vps.getTerminal()) + "]";
             if (user != null && !user.isEmpty()) return user + "@" + host + "  " + shell;
             return host + "  " + shell;
         }
@@ -281,6 +330,10 @@ public class VpsCardList extends JPanel {
         private void attachClickToConnect() {
             MouseAdapter clickHandler = new MouseAdapter() {
                 @Override public void mouseClicked(MouseEvent e) {
+                    if (suppressClick) {
+                        suppressClick = false;
+                        return;
+                    }
                     if (confirming) return;
                     // Ignore clicks that landed on a button (edit / delete / confirm)
                     Component hit = SwingUtilities.getDeepestComponentAt(
@@ -306,6 +359,51 @@ public class VpsCardList extends JPanel {
             }
         }
 
+        // ── Drag-to-reorder ──────────────────────────────────────────────────
+
+        private void attachDragToReorder() {
+            installDragOnNonButtons(this);
+        }
+
+        private void installDragOnNonButtons(Component c) {
+            MouseAdapter dragHandler = new MouseAdapter() {
+                @Override public void mousePressed(MouseEvent e) {
+                    if (confirming || e.getButton() != MouseEvent.BUTTON1) return;
+                    dragStart = SwingUtilities.convertPoint(c, e.getPoint(), VpsCard.this);
+                }
+
+                @Override public void mouseDragged(MouseEvent e) {
+                    if (dragStart == null || confirming) return;
+                    Point pointInCard = SwingUtilities.convertPoint(c, e.getPoint(), VpsCard.this);
+                    if (!dragging && dragStart.distance(pointInCard) >= 5) {
+                        beginDrag(VpsCard.this);
+                    }
+                    if (dragging && draggedCard == VpsCard.this) {
+                        Point pointInContainer = SwingUtilities.convertPoint(
+                                c, e.getPoint(), cardsContainer);
+                        updateDropTarget(pointInContainer);
+                    }
+                }
+
+                @Override public void mouseReleased(MouseEvent e) {
+                    if (dragging && draggedCard == VpsCard.this) {
+                        suppressClick = true;
+                        finishDrag();
+                    }
+                    dragStart = null;
+                }
+            };
+            c.addMouseListener(dragHandler);
+            c.addMouseMotionListener(dragHandler);
+            if (c instanceof Container ct) {
+                for (Component child : ct.getComponents()) {
+                    if (!(child instanceof JButton)) {
+                        installDragOnNonButtons(child);
+                    }
+                }
+            }
+        }
+
         // ── Painting ──────────────────────────────────────────────────────────
 
         @Override
@@ -324,6 +422,12 @@ public class VpsCardList extends JPanel {
             Color face = confirming ? CONFIRM_BG : (hovered ? CARD_HOVER : CARD_NORMAL);
             g2.setColor(face);
             g2.fill(new RoundRectangle2D.Float(0, 0, w - 2, h - 2, RADIUS, RADIUS));
+
+            if (dragging && dropInsertionIndex == index) {
+                g2.setColor(new Color(0x4F6EF7));
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawLine(8, 1, w - 10, 1);
+            }
 
             g2.dispose();
             super.paintComponent(g);

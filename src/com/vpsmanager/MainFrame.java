@@ -40,8 +40,22 @@ public class MainFrame extends JFrame {
         JButton addBtn = createAddButton();
         addBtn.addActionListener(e -> addVps());
 
+        JButton settingsBtn = new JButton("⚙");
+        settingsBtn.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 18));
+        settingsBtn.setToolTipText("Settings");
+        settingsBtn.setFocusPainted(false);
+        settingsBtn.setBorderPainted(false);
+        settingsBtn.setContentAreaFilled(false);
+        settingsBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        settingsBtn.addActionListener(e -> new SettingsDialog(this).setVisible(true));
+
+        JPanel topBarActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        topBarActions.setOpaque(false);
+        topBarActions.add(settingsBtn);
+        topBarActions.add(addBtn);
+
         topBar.add(title, BorderLayout.WEST);
-        topBar.add(addBtn, BorderLayout.EAST);
+        topBar.add(topBarActions, BorderLayout.EAST);
 
         // ── Card list ─────────────────────────────────────────────────────────
         cardList = new VpsCardList(this);
@@ -130,40 +144,14 @@ public class MainFrame extends JFrame {
         saveData();
     }
 
-    /**
-     * Opens a new, visible CMD or PowerShell window and runs the VPS command.
-     * Uses "cmd /c start" as a wrapper so a real console window always appears,
-     * even when the parent JVM process has no console of its own.
-     *
-     * Bug fix: plain ProcessBuilder("powershell.exe", ...) inherits the JVM's
-     * hidden console on Windows — the window never surfaces. "cmd /c start <exe>"
-     * always creates a new top-level window.
-     */
+    /** Opens the VPS command in the configured native terminal. */
     void connectVps(Vps v) {
         String cmd = v.buildFinalCommand();
         try {
-            ProcessBuilder pb;
-            if (v.getShell() == Vps.Shell.POWERSHELL) {
-                // "cmd /c start <program> <args>" always opens a new visible window.
-                // Do NOT pass a title string before powershell.exe — start treats the
-                // first unquoted arg as the program name, not a title.  The previous
-                // code passed "PowerShell" as an unquoted arg, which made start launch
-                // PowerShell.exe with "powershell.exe" as its argument (wrong).
-                pb = new ProcessBuilder(
-                        "cmd.exe", "/c", "start",
-                        "powershell.exe", "-NoExit", "-Command", cmd
-                );
-            } else {
-                pb = new ProcessBuilder(
-                        "cmd.exe", "/c", "start",
-                        "cmd.exe", "/k", cmd
-                );
-            }
-            pb.directory(Paths.get(".").toAbsolutePath().normalize().toFile());
-            pb.start();
+            TerminalLauncher.launch(v.getShell(), cmd, v.getTerminal());
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                    "Failed to launch shell:\n" + e.getMessage() +
+                    "Failed to launch terminal:\n" + e.getMessage() +
                     "\n\nCommand was:\n" + cmd,
                     "Launch error", JOptionPane.ERROR_MESSAGE);
         }

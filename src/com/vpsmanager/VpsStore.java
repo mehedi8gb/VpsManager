@@ -67,6 +67,7 @@ public class VpsStore {
             sb.append("username=").append(nullToEmpty(v.getUsername())).append("\n");
             sb.append("password=").append(nullToEmpty(v.getPassword())).append("\n");
             sb.append("shell=").append(v.getShell().name()).append("\n");
+            sb.append("terminal=").append(nullToEmpty(v.getTerminal())).append("\n");
             sb.append("command=").append(nullToEmpty(v.getCommand())).append("\n");
             sb.append("---\n");
         }
@@ -89,6 +90,7 @@ public class VpsStore {
                 m.getOrDefault("username", ""),
                 m.getOrDefault("password", ""),
                 shell,
+                m.getOrDefault("terminal", TerminalLauncher.AUTO),
                 m.getOrDefault("command", "")
         );
     }
