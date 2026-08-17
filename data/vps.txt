@@ -1,0 +1,7 @@
+name=Contabo PBD Staging
+host=217.15.166.22
+username=deploy
+password=aa
+shell=POWERSHELL
+command=ssh -i ~/.ssh/deploy_key {username}@{host}
+---
