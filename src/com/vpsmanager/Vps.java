@@ -11,14 +11,20 @@ public class Vps {
     private String username;
     private String password;
     private Shell shell;
+    private String terminal;
     private String command; // supports {host} {username} {password} placeholders
 
     public Vps(String name, String host, String username, String password, Shell shell, String command) {
+        this(name, host, username, password, shell, TerminalLauncher.AUTO, command);
+    }
+
+    public Vps(String name, String host, String username, String password, Shell shell, String terminal, String command) {
         this.name = name;
         this.host = host;
         this.username = username;
         this.password = password;
         this.shell = shell;
+        this.terminal = terminal == null || terminal.isBlank() ? TerminalLauncher.AUTO : terminal;
         this.command = command;
     }
 
@@ -36,6 +42,9 @@ public class Vps {
 
     public Shell getShell() { return shell; }
     public void setShell(Shell shell) { this.shell = shell; }
+
+    public String getTerminal() { return terminal; }
+    public void setTerminal(String terminal) { this.terminal = terminal; }
 
     public String getCommand() { return command; }
     public void setCommand(String command) { this.command = command; }

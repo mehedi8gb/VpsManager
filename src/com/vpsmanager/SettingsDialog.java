@@ -28,8 +28,8 @@ public class SettingsDialog extends JDialog {
         c.gridx = 1; c.weightx = 1; c.fill = GridBagConstraints.HORIZONTAL;
         form.add(terminalBox, c);
 
-        JLabel hint = new JLabel("<html><span style='color:#6B7280'>Automatic detects a suitable terminal on this operating system. "
-                + "Only terminals available on this device are listed.</span></html>");
+        JLabel hint = new JLabel("<html><span style='color:#6B7280'>This is the default for new VPS entries. "
+                + "Automatic detects a suitable terminal on this operating system; each VPS can override it.</span></html>");
         c.gridx = 0; c.gridy = 1; c.gridwidth = 2; c.weightx = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
         form.add(hint, c);

@@ -148,7 +148,7 @@ public class MainFrame extends JFrame {
     void connectVps(Vps v) {
         String cmd = v.buildFinalCommand();
         try {
-            TerminalLauncher.launch(v.getShell(), cmd, AppSettings.getPreferredTerminal());
+            TerminalLauncher.launch(v.getShell(), cmd, v.getTerminal());
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
                     "Failed to launch terminal:\n" + e.getMessage() +

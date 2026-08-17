@@ -232,7 +232,8 @@ public class VpsCardList extends JPanel {
         private String buildSubtitle() {
             String user  = vps.getUsername();
             String host  = vps.getHost();
-            String shell = "[" + vps.getShell().name() + "]";
+            String shell = "[" + vps.getShell().name() + " · "
+                    + TerminalLauncher.labelFor(vps.getTerminal()) + "]";
             if (user != null && !user.isEmpty()) return user + "@" + host + "  " + shell;
             return host + "  " + shell;
         }
