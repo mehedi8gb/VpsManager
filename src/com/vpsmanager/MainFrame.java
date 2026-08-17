@@ -4,6 +4,8 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -13,7 +15,7 @@ import java.util.List;
  */
 public class MainFrame extends JFrame {
 
-    private final VpsStore store = new VpsStore(Paths.get("data", "vps.txt"));
+    private final VpsStore store = new VpsStore(resolveDataFile());
     private VpsCardList cardList;
 
     public MainFrame() {
@@ -60,13 +62,33 @@ public class MainFrame extends JFrame {
 
     // ── Data helpers ──────────────────────────────────────────────────────────
 
+    /** Resolves a per-user writable data file for both installed and source runs. */
+    private static Path resolveDataFile() {
+        String localAppData = System.getenv("LOCALAPPDATA");
+        Path dataDirectory = (localAppData == null || localAppData.isBlank())
+                ? Paths.get(System.getProperty("user.home"), ".vpsmanager", "data")
+                : Paths.get(localAppData, "VpsManager", "data");
+        Path dataFile = dataDirectory.resolve("vps.txt");
+        Path packagedFile = Paths.get("data", "vps.txt");
+
+        try {
+            if (!Files.exists(dataFile) && Files.isRegularFile(packagedFile)) {
+                Files.createDirectories(dataDirectory);
+                Files.copy(packagedFile, dataFile);
+            }
+        } catch (IOException ignored) {
+            // save() reports a useful error if the user data directory is unavailable.
+        }
+        return dataFile;
+    }
+
     private void loadData() {
         try {
             List<Vps> loaded = store.load();
             cardList.setVpsList(loaded);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                    "Could not load data/vps.txt:\n" + e.getMessage(),
+                    "Could not load VPS data:\n" + e.getMessage(),
                     "Load error", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -76,7 +98,7 @@ public class MainFrame extends JFrame {
             store.save(cardList.getVpsList());
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                    "Could not save data/vps.txt:\n" + e.getMessage(),
+                    "Could not save VPS data:\n" + e.getMessage(),
                     "Save error", JOptionPane.ERROR_MESSAGE);
         }
     }

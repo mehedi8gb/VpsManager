@@ -12,3 +12,10 @@ password=
 shell=POWERSHELL
 command=ssh -i ~/.ssh/deploy_key {username}@{host}
 ---
+name=Shantinagar Server-M8
+host=160.202.144.182
+username=deploy
+password=
+shell=CMD
+command=ssh -i ~/.ssh/deploy_key {username}@{host} -p 221
+---
