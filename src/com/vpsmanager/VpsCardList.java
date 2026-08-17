@@ -197,8 +197,8 @@ public class VpsCardList extends JPanel {
             lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
             lbl.setForeground(CONFIRM_TEXT);
 
-            JButton yes = makeSmallBtn("\u2713", new Color(0xEF4444), Color.WHITE);
-            JButton no  = makeSmallBtn("\u2717", new Color(0xE9ECEF), new Color(0x374151));
+            JButton yes = makeSmallBtn("Yes", new Color(0xEF4444), Color.WHITE);
+            JButton no  = makeSmallBtn("No", new Color(0xE9ECEF), new Color(0x374151));
 
             yes.addActionListener(e -> owner.deleteVps(index));
             no.addActionListener(e -> exitConfirmState());

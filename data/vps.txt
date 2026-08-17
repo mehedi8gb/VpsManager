@@ -5,3 +5,10 @@ password=aa
 shell=POWERSHELL
 command=ssh -i ~/.ssh/deploy_key {username}@{host}
 ---
+name=Contabo PerfexCrm VPS
+host=213.136.66.188
+username=deploy
+password=
+shell=POWERSHELL
+command=ssh -i ~/.ssh/deploy_key {username}@{host}
+---
