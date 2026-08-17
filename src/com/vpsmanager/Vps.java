@@ -4,7 +4,7 @@ package com.vpsmanager;
  * Simple data holder for one VPS entry.
  */
 public class Vps {
-    public enum Shell { CMD, POWERSHELL }
+    public enum Shell { CMD, POWERSHELL, BASH, ZSH }
 
     private String name;
     private String host;

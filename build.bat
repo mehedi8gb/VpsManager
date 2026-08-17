@@ -17,7 +17,7 @@ SET FLATLAF=%LIB%\flatlaf-3.5.4.jar
 SET APP_IMAGE_NAME=%APP_NAME%-%VERSION%
 SET JAR_NAME=%APP_NAME%-%VERSION%.jar
 SET SETUP_NAME=%APP_NAME%-%VERSION%-Setup.exe
-SET MODULES=java.base,java.desktop,java.logging,java.naming,java.security.jgss,java.xml
+SET MODULES=java.base,java.desktop,java.logging,java.naming,java.prefs,java.security.jgss,java.xml
 SET WIX_URL=https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip
 
 echo === %DISPLAY_NAME% %VERSION% Release Build ===

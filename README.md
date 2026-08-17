@@ -2,6 +2,16 @@
 
 VPS Manager is a Java 17 Swing desktop application for keeping a list of VPS connections and launching their configured shell commands. It uses the FlatLaf look and feel.
 
+## Cross-platform terminal support
+
+Use the gear icon in the main window to select a terminal. The default **Automatic** setting detects available options for the current operating system:
+
+- Windows: Windows Terminal, PowerShell, or Command Prompt.
+- Linux/Ubuntu: GNOME Console, GNOME Terminal, Konsole, Xfce Terminal, the system `x-terminal-emulator`, or XTerm.
+- macOS: Terminal.
+
+Each VPS can use CMD, PowerShell, Bash, or Zsh. The self-contained JAR runs on Windows, Linux, and macOS with Java 17. Native installers/app images must be built with `jpackage` on their target operating system.
+
 > Screenshot placeholder: add a screenshot at `docs/screenshot.png`, then replace this note with `![VPS Manager screenshot](docs/screenshot.png)`.
 
 ## Just want the app?
