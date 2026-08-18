@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 
-SET VERSION=1.0.1
+SET VERSION=1.0.2
 SET APP_NAME=VpsManager
 SET DISPLAY_NAME=VPS Manager
 SET VENDOR=VPS Manager
