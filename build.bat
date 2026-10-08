@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 
-if not defined VERSION set "VERSION=1.1.3"
+if not defined VERSION set "VERSION=1.1.4"
 SET APP_NAME=VpsManager
 SET DISPLAY_NAME=VPS Manager
 SET VENDOR=VPS Manager
@@ -17,7 +17,7 @@ SET FLATLAF=%LIB%\flatlaf-3.5.4.jar
 SET APP_IMAGE_NAME=%APP_NAME%-%VERSION%
 SET JAR_NAME=%APP_NAME%-%VERSION%.jar
 SET SETUP_NAME=%APP_NAME%-%VERSION%-Setup.exe
-SET MODULES=java.base,java.desktop,java.logging,java.naming,java.net.http,java.prefs,java.security.jgss,java.xml
+SET MODULES=java.base,java.desktop,java.logging,java.naming,java.net.http,java.prefs,java.security.jgss,java.xml,jdk.crypto.ec
 SET WIX_URL=https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip
 
 echo === %DISPLAY_NAME% %VERSION% Release Build ===
@@ -68,6 +68,8 @@ set "JAVAC_EXIT=%ERRORLEVEL%"
 popd
 if not "%JAVAC_EXIT%"=="0" (set "ERROR_MESSAGE=Compilation failed." & goto :fail)
 > "%BIN%\version.properties" echo version=%VERSION%
+copy /y "%SRC%\com\vpsmanager\app-icon.png" "%BIN%\com\vpsmanager\app-icon.png" >nul
+if errorlevel 1 (set "ERROR_MESSAGE=Could not add the application icon resource." & goto :fail)
 echo       PASS
 
 echo [Building self-contained fat JAR]

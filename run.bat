@@ -2,7 +2,7 @@
 setlocal EnableExtensions DisableDelayedExpansion
 
 set "ROOT=%~dp0"
-if not defined VERSION set "VERSION=1.0.2"
+if not defined VERSION set "VERSION=1.0.4"
 set "SRC=%ROOT%src"
 set "BIN=%ROOT%bin"
 set "FLATLAF=%ROOT%lib\flatlaf-3.5.4.jar"
@@ -42,6 +42,11 @@ if not "%COMPILE_EXIT%"=="0" (
     exit /b %COMPILE_EXIT%
 )
 > "%BIN%\version.properties" echo version=%VERSION%
+copy /y "%SRC%\com\vpsmanager\app-icon.png" "%BIN%\com\vpsmanager\app-icon.png" >nul
+if errorlevel 1 (
+    echo Could not add the application icon resource.
+    exit /b 1
+)
 
 pushd "%ROOT%"
 if errorlevel 1 (

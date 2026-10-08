@@ -1,9 +1,11 @@
 package com.vpsmanager;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,6 +25,12 @@ public class MainFrame extends JFrame {
 
     public MainFrame() {
         super("VPS Manager");
+        try (InputStream icon = MainFrame.class.getResourceAsStream("app-icon.png")) {
+            if (icon != null) {
+                setIconImage(ImageIO.read(icon));
+            }
+        } catch (IOException ignored) {
+        }
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(500, 600);
         setMinimumSize(new Dimension(400, 400));
