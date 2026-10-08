@@ -18,9 +18,9 @@ Each VPS can use CMD, PowerShell, Bash, or Zsh. VPS cards show a copy-password a
 
 ## Just want the app?
 
-Download `VpsManager-1.0.0-Setup.exe` from this repository's [GitHub Releases](../../releases) page and run it. Java is bundled with the application; no JDK or separate Java installation is required.
+Download the latest `VpsManager-<version>-Setup.exe` from this repository's [GitHub Releases](../../releases) page and run it. Java is bundled with the application; no JDK or separate Java installation is required.
 
-The release also includes a portable app image (`VpsManager-1.0.0/`) and the self-contained `VpsManager-1.0.0.jar`.
+The release also includes a zipped portable app image and the self-contained `VpsManager-<version>.jar`.
 
 ## Run from source
 
