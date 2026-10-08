@@ -11,6 +11,7 @@ public class App {
         SwingUtilities.invokeLater(() -> {
             MainFrame frame = new MainFrame();
             frame.setVisible(true);
+            UpdateService.checkForUpdates(frame, false);
         });
     }
 }
