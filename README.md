@@ -22,6 +22,10 @@ Download the latest `VpsManager-<version>-Setup.exe` from this repository's [Git
 
 The release also includes a zipped portable app image and the self-contained `VpsManager-<version>.jar`.
 
+See the [automatic release guide](docs/releasing.md) for versioning rules and the release workflow.
+
+On Windows, VPS Manager checks for stable updates at startup. If a newer release is available, it downloads the installer and asks whether to run it. Choose **Later** to dismiss the prompt; an update badge remains on **About**, where the update can be installed later. The app will not prompt again for that version. Prereleases are never installed automatically.
+
 ## Run from source
 
 1. Install JDK 17.
