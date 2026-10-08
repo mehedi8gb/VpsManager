@@ -12,23 +12,23 @@ Use the gear icon in the main window to choose the default terminal for new VPS 
 
 Additional terminal-looking executables found on a Linux/Unix `PATH` are listed as `Detected: <name>` and launched with the standard `-e` convention.
 
-Each VPS can use CMD, PowerShell, Bash, or Zsh. The self-contained JAR runs on Windows, Linux, and macOS with Java 17. Native installers/app images must be built with `jpackage` on their target operating system.
+Each VPS can use CMD, PowerShell, Bash, or Zsh. VPS cards show a copy-password action when a password is set; passwords remain editable through the VPS editor. Copying briefly indicates success or failure. The self-contained JAR runs on Windows, Linux, and macOS with Java 17. Native installers/app images must be built with `jpackage` on their target operating system.
 
 > Screenshot placeholder: add a screenshot at `docs/screenshot.png`, then replace this note with `![VPS Manager screenshot](docs/screenshot.png)`.
 
 ## Just want the app?
 
-Download `VpsManager-1.0.0-Setup.exe` from this repository's [GitHub Releases](../../releases) page and run it. Java is bundled with the application; no JDK or separate Java installation is required.
+Download the latest `VpsManager-<version>-Setup.exe` from this repository's [GitHub Releases](../../releases) page and run it. Java is bundled with the application; no JDK or separate Java installation is required.
 
-The release also includes a portable app image (`VpsManager-1.0.0/`) and the self-contained `VpsManager-1.0.0.jar`.
+The release also includes a zipped portable app image and the self-contained `VpsManager-<version>.jar`.
 
 ## Run from source
 
 1. Install JDK 17.
 2. Clone the repository.
-3. Run `build.bat` from the repository root.
+3. Run `run.bat` to launch the app during development, or `build.bat` to create release artifacts.
 
-The script cleans previous build output, compiles the sources, creates the fat JAR, creates the portable app image with its own minimal Java runtime, and creates the installer. If WiX is not already on `PATH`, the script downloads portable WiX 3.11 tooling into its temporary build directory automatically. Release files are written to `dist/`.
+`run.bat` clears stale classes, compiles all Java sources with JDK 17, and launches the fresh build. `build.bat` cleans previous build output, compiles the sources, creates the fat JAR, creates the portable app image with its own minimal Java runtime, and creates the installer. If WiX is not already on `PATH`, the script downloads portable WiX 3.11 tooling into its temporary build directory automatically. Release files are written to `dist/`.
 
 ## Storage
 

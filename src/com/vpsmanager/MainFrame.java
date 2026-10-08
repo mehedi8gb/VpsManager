@@ -16,7 +16,7 @@ import java.util.List;
 public class MainFrame extends JFrame {
 
     private final VpsStore store = new VpsStore(resolveDataFile());
-    private VpsCardList cardList;
+    private final VpsCardList cardList;
 
     public MainFrame() {
         super("VPS Manager");

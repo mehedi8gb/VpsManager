@@ -3,6 +3,7 @@ package com.vpsmanager;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
@@ -158,9 +159,12 @@ public class VpsCardList extends JPanel {
 
         private final JPanel     rightPanel;   // CardLayout host
         private final JButton    editBtn;
+        private final JButton    copyPasswordBtn;
+        private final CopyPasswordIcon copyPasswordIcon;
         private final JButton    deleteBtn;
         private final JPanel     iconRow;
         private final JPanel     confirmRow;
+        private Timer copyFeedbackTimer;
 
         VpsCard(Vps vps, int index) {
             this.vps   = vps;
@@ -194,11 +198,16 @@ public class VpsCardList extends JPanel {
 
             // ── Icon buttons ──────────────────────────────────────────────────
             editBtn   = makeIconButton("\u270F", ICON_NORMAL, ICON_HOVER, "Edit");
+            copyPasswordIcon = new CopyPasswordIcon();
+            copyPasswordBtn = makeIconButton("", ICON_NORMAL, ICON_HOVER, "Copy password");
+            copyPasswordBtn.setText(null);
+            copyPasswordBtn.setIcon(copyPasswordIcon);
             deleteBtn = makeIconButton("\uD83D\uDDD1", ICON_NORMAL, DELETE_HOVER, "Delete");
 
             iconRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
             iconRow.setOpaque(false);
             iconRow.add(editBtn);
+            iconRow.add(copyPasswordBtn);
             iconRow.add(deleteBtn);
 
             // ── Inline confirm row ────────────────────────────────────────────
@@ -210,15 +219,15 @@ public class VpsCardList extends JPanel {
             rightPanel.setPreferredSize(new Dimension(140, 36));
             rightPanel.add(iconRow,    CARD_ICONS);
             rightPanel.add(confirmRow, CARD_CONFIRM);
-            // Start with icons hidden (we're not hovered yet)
             showCard(CARD_ICONS);
-            iconRow.setVisible(false);  // hidden until hover
+            copyPasswordBtn.setVisible(hasPassword());
 
             add(textPanel,  BorderLayout.CENTER);
             add(rightPanel, BorderLayout.EAST);
 
             // ── Action listeners ──────────────────────────────────────────────
             editBtn.addActionListener(e -> owner.editVps(vps, index));
+            copyPasswordBtn.addActionListener(e -> copyPassword());
             deleteBtn.addActionListener(e -> enterConfirmState());
 
             // ── Mouse tracking ────────────────────────────────────────────────
@@ -258,6 +267,52 @@ public class VpsCardList extends JPanel {
             return p;
         }
 
+        private void copyPassword() {
+            String password = vps.getPassword();
+            if (password == null || password.isEmpty()) {
+                showCopyFeedback(false, "No password set");
+                return;
+            }
+            try {
+                Toolkit.getDefaultToolkit().getSystemClipboard()
+                        .setContents(new StringSelection(password), null);
+                showCopyFeedback(true, "Copied!");
+            } catch (IllegalStateException | SecurityException e) {
+                showCopyFeedback(false, "Copy failed");
+            }
+        }
+
+        private void showCopyFeedback(boolean copied, String tooltip) {
+            if (copyFeedbackTimer != null) {
+                copyFeedbackTimer.stop();
+            }
+            copyPasswordIcon.showFeedback(copied);
+            copyPasswordBtn.setToolTipText(tooltip);
+
+            long startedAt = System.nanoTime();
+            copyFeedbackTimer = new Timer(30, event -> {
+                long elapsedMillis = (System.nanoTime() - startedAt) / 1_000_000;
+                float progress;
+                if (elapsedMillis < 180) {
+                    progress = elapsedMillis / 180f;
+                } else if (elapsedMillis < 800) {
+                    progress = 1f;
+                } else {
+                    progress = Math.max(0f, 1f - (elapsedMillis - 800) / 300f);
+                }
+                copyPasswordIcon.setProgress(progress);
+                copyPasswordBtn.repaint();
+
+                if (elapsedMillis >= 1100) {
+                    ((Timer) event.getSource()).stop();
+                    copyPasswordIcon.clearFeedback();
+                    copyPasswordBtn.setToolTipText("Copy password");
+                    copyPasswordBtn.repaint();
+                }
+            });
+            copyFeedbackTimer.start();
+        }
+
         // ── State transitions ─────────────────────────────────────────────────
 
         private void showCard(String name) {
@@ -272,22 +327,13 @@ public class VpsCardList extends JPanel {
 
         private void exitConfirmState() {
             confirming = false;
-            if (hovered) {
-                showCard(CARD_ICONS);
-                iconRow.setVisible(true);
-            } else {
-                iconRow.setVisible(false);
-                showCard(CARD_ICONS);
-            }
+            showCard(CARD_ICONS);
             repaint();
         }
 
         private void setHovered(boolean h) {
             if (hovered == h) return;
             hovered = h;
-            if (!confirming) {
-                iconRow.setVisible(h);
-            }
             repaint();
         }
 
@@ -453,6 +499,11 @@ public class VpsCardList extends JPanel {
             return btn;
         }
 
+        private boolean hasPassword() {
+            String password = vps.getPassword();
+            return password != null && !password.isEmpty();
+        }
+
         private JButton makeSmallBtn(String label, Color bg, Color fg) {
             JButton btn = new JButton(label);
             btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -465,6 +516,66 @@ public class VpsCardList extends JPanel {
             btn.setPreferredSize(new Dimension(30, 26));
             btn.setBorder(new EmptyBorder(2, 6, 2, 6));
             return btn;
+        }
+    }
+
+    private static final class CopyPasswordIcon implements Icon {
+        private static final Color SUCCESS_COLOR = new Color(0x16A34A);
+        private static final Color WARNING_COLOR = new Color(0xDC2626);
+
+        private Boolean copied;
+        private float progress;
+
+        void showFeedback(boolean copied) {
+            this.copied = copied;
+            progress = 0f;
+        }
+
+        void setProgress(float progress) {
+            this.progress = progress;
+        }
+
+        void clearFeedback() {
+            copied = null;
+            progress = 0f;
+        }
+
+        @Override
+        public int getIconWidth() { return 18; }
+
+        @Override
+        public int getIconHeight() { return 18; }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D g2 = (Graphics2D) graphics.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            if (copied == null) {
+                g2.setColor(component.getForeground());
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.drawRoundRect(x + 7, y + 2, 8, 10, 2, 2);
+                g2.drawRoundRect(x + 3, y + 6, 8, 10, 2, 2);
+            } else {
+                Color target = copied ? SUCCESS_COLOR : WARNING_COLOR;
+                Color normal = component.getForeground();
+                Color color = new Color(
+                        (int) (normal.getRed() + (target.getRed() - normal.getRed()) * progress),
+                        (int) (normal.getGreen() + (target.getGreen() - normal.getGreen()) * progress),
+                        (int) (normal.getBlue() + (target.getBlue() - normal.getBlue()) * progress));
+                g2.setColor(new Color(target.getRed(), target.getGreen(), target.getBlue(),
+                        (int) (36 * progress)));
+                g2.fillOval(x + 1, y + 1, 16, 16);
+                g2.setColor(color);
+                g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                if (copied) {
+                    g2.drawLine(x + 4, y + 9, x + 7, y + 12);
+                    g2.drawLine(x + 7, y + 12, x + 14, y + 5);
+                } else {
+                    g2.drawLine(x + 9, y + 4, x + 9, y + 10);
+                    g2.fillOval(x + 8, y + 13, 2, 2);
+                }
+            }
+            g2.dispose();
         }
     }
 }
