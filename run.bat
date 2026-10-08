@@ -1,8 +1,50 @@
 @echo off
-:: Use javaw (not java) — javaw is the windowless GUI launcher.
-:: It never opens a console window, even if double-clicked.
-if exist VpsManager.jar (
-    start "" javaw -jar VpsManager.jar
-) else (
-    start "" javaw -cp lib\flatlaf-3.5.4.jar;bin com.vpsmanager.App
+setlocal EnableExtensions DisableDelayedExpansion
+
+set "ROOT=%~dp0"
+set "SRC=%ROOT%src"
+set "BIN=%ROOT%bin"
+set "FLATLAF=%ROOT%lib\flatlaf-3.5.4.jar"
+
+where javac >nul 2>nul
+if errorlevel 1 (
+    echo JDK 17 javac was not found on PATH.
+    exit /b 1
 )
+where javaw >nul 2>nul
+if errorlevel 1 (
+    echo javaw was not found on PATH.
+    exit /b 1
+)
+if not exist "%FLATLAF%" (
+    echo Missing dependency: %FLATLAF%
+    exit /b 1
+)
+
+if exist "%BIN%" rmdir /s /q "%BIN%"
+if exist "%BIN%" (
+    echo Could not remove old compiled classes from "%BIN%".
+    exit /b 1
+)
+mkdir "%BIN%"
+if errorlevel 1 (
+    echo Could not create compiled classes directory "%BIN%".
+    exit /b 1
+)
+
+pushd "%SRC%"
+javac --release 17 -encoding UTF-8 -cp "%FLATLAF%" -d "%BIN%" com\vpsmanager\*.java
+set "COMPILE_EXIT=%ERRORLEVEL%"
+popd
+if not "%COMPILE_EXIT%"=="0" (
+    echo Compilation failed. Application not started.
+    exit /b %COMPILE_EXIT%
+)
+
+pushd "%ROOT%"
+if errorlevel 1 (
+    echo Could not switch to application directory "%ROOT%".
+    exit /b 1
+)
+start "" javaw -cp "%FLATLAF%;%BIN%" com.vpsmanager.App
+popd
