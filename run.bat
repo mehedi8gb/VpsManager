@@ -2,6 +2,7 @@
 setlocal EnableExtensions DisableDelayedExpansion
 
 set "ROOT=%~dp0"
+if not defined VERSION set "VERSION=1.0.2"
 set "SRC=%ROOT%src"
 set "BIN=%ROOT%bin"
 set "FLATLAF=%ROOT%lib\flatlaf-3.5.4.jar"
@@ -40,6 +41,7 @@ if not "%COMPILE_EXIT%"=="0" (
     echo Compilation failed. Application not started.
     exit /b %COMPILE_EXIT%
 )
+> "%BIN%\version.properties" echo version=%VERSION%
 
 pushd "%ROOT%"
 if errorlevel 1 (

@@ -17,6 +17,9 @@ public class MainFrame extends JFrame {
 
     private final VpsStore store = new VpsStore(resolveDataFile());
     private final VpsCardList cardList;
+    private final JButton aboutBtn = new JButton("About");
+    private String availableUpdateVersion;
+    private Path downloadedUpdate;
 
     public MainFrame() {
         super("VPS Manager");
@@ -40,6 +43,12 @@ public class MainFrame extends JFrame {
         JButton addBtn = createAddButton();
         addBtn.addActionListener(e -> addVps());
 
+        aboutBtn.setFocusPainted(false);
+        aboutBtn.setBorderPainted(false);
+        aboutBtn.setContentAreaFilled(false);
+        aboutBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        aboutBtn.addActionListener(e -> showAbout());
+
         JButton settingsBtn = new JButton("⚙");
         settingsBtn.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 18));
         settingsBtn.setToolTipText("Settings");
@@ -51,6 +60,7 @@ public class MainFrame extends JFrame {
 
         JPanel topBarActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         topBarActions.setOpaque(false);
+        topBarActions.add(aboutBtn);
         topBarActions.add(settingsBtn);
         topBarActions.add(addBtn);
 
@@ -128,6 +138,41 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void showAbout() {
+        boolean updateReady = downloadedUpdate != null;
+        Object[] options = {updateReady ? "Install update" : "Check for updates", "Close"};
+        String updateStatus = updateReady
+            ? "\n\nVersion " + availableUpdateVersion + " is ready to install."
+            : "\n\nStable Windows updates are checked automatically at startup.";
+        int choice = JOptionPane.showOptionDialog(this,
+                "VPS Manager\nVersion " + AppVersion.current()
+                + updateStatus,
+                "About VPS Manager",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                options,
+                options[1]);
+        if (choice == 0) {
+            if (updateReady) {
+                UpdateService.installUpdate(this, downloadedUpdate);
+            } else {
+                UpdateService.checkForUpdates(this, true);
+            }
+        }
+    }
+
+    void setUpdateAvailable(String version, Path installer) {
+        availableUpdateVersion = version;
+        downloadedUpdate = installer;
+        aboutBtn.setIcon(new UpdateBadgeIcon());
+        aboutBtn.setHorizontalTextPosition(SwingConstants.LEFT);
+        aboutBtn.setIconTextGap(6);
+        aboutBtn.setToolTipText("Update " + version + " is ready to install");
+        aboutBtn.getAccessibleContext().setAccessibleDescription(
+                "About. Update " + version + " is ready to install.");
+    }
+
     /** Called by VpsCard when the edit icon is clicked. */
     void editVps(Vps existing, int index) {
         VpsDialog dlg = new VpsDialog(this, existing);
@@ -180,5 +225,35 @@ public class MainFrame extends JFrame {
             }
         });
         return btn;
+    }
+
+    private static final class UpdateBadgeIcon implements Icon {
+        private static final int SIZE = 16;
+
+        @Override
+        public int getIconWidth() {
+            return SIZE;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return SIZE;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D graphics2D = (Graphics2D) graphics.create();
+            graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics2D.setColor(new Color(0xD97706));
+            graphics2D.fillOval(x, y, SIZE, SIZE);
+            graphics2D.setColor(Color.WHITE);
+            graphics2D.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND,
+                    BasicStroke.JOIN_ROUND));
+            graphics2D.drawLine(x + 8, y + 11, x + 8, y + 5);
+            graphics2D.drawLine(x + 5, y + 8, x + 8, y + 5);
+            graphics2D.drawLine(x + 11, y + 8, x + 8, y + 5);
+            graphics2D.dispose();
+        }
     }
 }
